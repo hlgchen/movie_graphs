@@ -47,3 +47,11 @@ def transductive_edge_split(edge_list,
     if last_cutoff != num_edges: 
         edges[f"test"] = [edge_list[i] for i in idx[last_cutoff:]]
     return edges
+
+
+def accuracy(pred, label):
+    pred_integer = (pred > 0.5).type(torch.LongTensor)
+    accu = (label == pred_integer).sum() / torch.ones(label.shape).sum()
+    accu = round(float(accu), 4)
+
+    return accu
