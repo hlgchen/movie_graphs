@@ -1,0 +1,2 @@
+In meta data and cast data: id == links.tmdbId
+In ratings movieid corresponds to links.movieId
