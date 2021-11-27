@@ -3,7 +3,9 @@ from torch import nn
 
 
 class simple_embedding(): 
-    
+    """Simple embedding model where the proximity is just the scalarproduct 
+    between the embedding of the nodes. 
+    """
     def __init__(self, emb): 
         self.emb = emb
         self.sigmoid = nn.Sigmoid()

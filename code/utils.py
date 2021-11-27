@@ -3,8 +3,11 @@ import torch
 from torch import nn
 import random
 
-def graph_to_edge_list(G):
-    return [edge for edge in nx.edges(G)]
+def graph_to_edge_list(G, sort=False):
+    if sort: 
+        return [sorted(edge) for edge in nx.edges(G)]
+    else: 
+        return [edge for edge in nx.edges(G)]
 
 def edge_list_to_tensor(edge_list):
     edge_index = torch.tensor(edge_list)
