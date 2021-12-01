@@ -91,7 +91,13 @@ class LightGCN(torch.nn.Module):
             ])
 
 
-    def forward(self, x, adj_t):
+    def forward(self, x, adj_t, adj_t_is_undirected=True):
+        
+        """For message parsing edges have to be directed"""
+        if adj_t_is_undirected: 
+            adj_t_reversed = adj_t[[1,0],:]
+            adj_t = torch.cat([adj_t, adj_t_reversed], dim = 1)
+        
         out_ls = []
         edge_index, edge_weight = gcn_norm(adj_t, edge_weight=None, num_nodes=x.size(0))
         

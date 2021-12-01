@@ -29,8 +29,8 @@ def edge_list_to_tensor(edge_list):
     """
     edge_index = torch.tensor(edge_list)
     edge_index = torch.transpose(edge_index, 0,1)
-    edge_index_reversed = edge_index[[1,0],:]
-    return torch.cat([edge_index, edge_index_reversed], dim = 1)
+    
+    return edge_index
 
 
 def sample_negative_edges(G, num_neg_samples):
