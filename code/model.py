@@ -18,6 +18,13 @@ class simple_embedding():
         return out
     
     def recommend(self, edges): 
+        """
+        Takes possible edges and predicts how likely it is to exist, 
+        i.e. estimates how close both nodes in the edge are in terms of 
+        their embedding. 
+        
+        Returns sorted edges (by prediction score) and the sorted prediction score
+        """
         pred = self.forward(edges)
         ranking = torch.argsort(pred, descending=True)
         return edges[:, ranking], pred[ranking]
@@ -27,6 +34,20 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 from torch_scatter import scatter_add
 
 def gcn_norm(edge_index, edge_weight=None, num_nodes=None): 
+    """
+    Returns edge index and edge weight that corresonds to edge diffusion
+    D^-0.5 A D^-0.5
+    
+    Params: 
+        - edge_index: tensor of shape (2, n_edges) containing edges
+        - edge_weight: tensor of shape (n_edges, ) containing weights of each edge
+        - num_nodes: integer with number of nodes of the graph
+    
+    Returns: 
+        - edge_index: edge index that was passed to the function 
+        - weight: tensor of shape (n_edges, ) containing weights that correspond to diffusion
+    
+    """
     num_nodes = maybe_num_nodes(edge_index, num_nodes)
     
     if edge_weight is None:
