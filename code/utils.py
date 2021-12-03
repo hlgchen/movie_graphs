@@ -1,7 +1,8 @@
+import random
 import networkx as nx 
 import torch
 from torch import nn
-import random
+import numpy as np
 
 def graph_to_edge_list(G, directed = False, self_loops=False):
     """Takes a networkx Graph and returns a list of edges. 
@@ -102,3 +103,87 @@ def accuracy(pred, label, threshold=0.5):
     accu = round(float(accu), 4)
 
     return accu
+
+
+def get_pos_edges_users(pos_edge_index):
+    """Takes tensor with positive edges and returns
+    Returns:
+        - users: user id in each of the edges in pos_edge_index
+                shape is (n_edges)
+        - unique_users: list of unique user ids
+        - index: position of user in pos_edge_index (dim0)
+    """
+    users, index = pos_edge_index.min(dim=0)
+    unique_users = users.unique().tolist()
+    return users, unique_users, index
+
+
+def get_pos_edges_movies(pos_edge_index):
+    """Takes tensor with positive edges and returns
+    Returns:
+        - movies: movie id in each of the edges in pos_edge_index
+                shape is (n_edges)
+        - unique_users: list of unique movie ids
+        - index: position of movie in pos_edge_index (dim0)
+    """
+    movies, index = pos_edge_index.max(dim=0)
+    unique_movies = movies.unique().tolist()
+    return movies, unique_movies, index
+
+
+def user_batch_generator(_unique_users, n_batches=100, batch_n_user=None):
+    """Returns a generator object giving a batch of users
+    in each step.
+
+    Params:
+        - _unique_users: list of unique user ids
+        - n_batches: integer of number of batches
+        - batch_n_users: integer number of number of users
+            in each batch
+    """
+    unique_user = _unique_users.copy()
+    random.shuffle(unique_user)
+    if batch_n_user is None:
+        batch_n_user = len(unique_user) // n_batches
+    for i in range(0, len(unique_user), batch_n_user):
+        yield unique_user[i : i + batch_n_user]
+        
+        
+def brp_loss(_f_pos, _f_neg):
+    """Return brp loss.
+
+    Params:
+        - _f_pos: positive edges for user
+        - _f_neg: negative edges for user
+
+    """
+    s = nn.Sigmoid()
+    f_pos = _f_pos.repeat_interleave(_f_neg.shape[0], dim=0)
+    f_neg = _f_neg.repeat(1, _f_pos.shape[0])
+
+    return -torch.log(s(f_pos - f_neg)).mean()
+
+
+def get_pos_neg_edges_for_user(edges, users, u, unique_movies_set, neg_sample_size=10):
+    """ "
+    Returns brp loss (float) for a set of users.
+
+    Params:
+        - edges: positive edges in graph as tensor, shape is (2, n_edges)
+        - users: tensor of shape (n_edges) with user ids in it
+        - u: integer user id for which we want to calculate the brp loss (should be in train edges)
+        - unique_movies_set: set containing movie ids that appear in positive edges
+        - neg_sample_size: size of negative edges for loss calculation
+    """
+
+    pos_edges = edges[:, users == u]
+
+    watched_movies = set(pos_edges.max(dim=0)[0].tolist())
+    neg_movies = list(unique_movies_set - watched_movies)
+    neg_movies = np.random.choice(neg_movies, neg_sample_size, replace=True)
+    neg_movies = torch.tensor(neg_movies)
+
+    user_tensor = torch.tensor([u]).repeat(neg_sample_size)
+    neg_edges = torch.stack([user_tensor, neg_movies])
+
+    return pos_edges, neg_edges
