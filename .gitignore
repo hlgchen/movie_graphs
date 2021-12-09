@@ -1,0 +1,4 @@
+*.csv
+*.ipynb_checkpoints
+*.cpython-39.pyc
+*.DS_Store
