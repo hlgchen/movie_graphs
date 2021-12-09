@@ -1,4 +1,4 @@
-# movie_graphs
+# movie_recommendations_cs224w
 
 This is the classproject in Stanford CS224w of 
 
